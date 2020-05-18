@@ -6,9 +6,9 @@ intelligence into the determination of them being malicious or benign.
 
 Requirements
 ------------
-	* pdfid, to be downloaded [here](https://blog.didierstevens.com/programs/pdf-tools/)
-	* pdfinfo
-	* yara
+ * pdfid, to be downloaded [here](https://blog.didierstevens.com/programs/pdf-tools/)
+ * pdfinfo
+ * yara
 
 Usage
 -----
