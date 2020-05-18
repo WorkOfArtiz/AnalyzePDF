@@ -1,14 +1,15 @@
 AnalyzePDF.py
 =============
 
-Analyzes PDF files by looking at their characteristics in order to add some intelligence into the determination of them being malicious or benign.
+Analyzes PDF files by looking at their characteristics in order to add some
+intelligence into the determination of them being malicious or benign.
 
 Requirements
 ------------
-	* pdfid
+	* pdfid, to be downloaded [here](https://blog.didierstevens.com/programs/pdf-tools/)
 	* pdfinfo
 	* yara
-	
+
 Usage
 -----
 	$ AnalyzePDF.py [-h] [-m MOVE] [-y YARARULES] Path
@@ -24,7 +25,7 @@ Usage
 	-m MOVE, --move MOVE  Directory to move files triggering YARA hits to
 	-y YARARULES, --yararules YARARULES
 							Path to YARA rules. Rules should contain a weighted
-							score in the metadata section. (i.e. weight = 3)					
+							score in the metadata section. (i.e. weight = 3)
 
 Restrictions
 ------------
