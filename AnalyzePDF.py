@@ -23,27 +23,27 @@ example: python AnalyzePDF.py -m tmp/badness -y foo/pdf.yara bar/getsome.pdf
 """
 
 # AnalyzePDF.py was created by Glenn P. Edwards Jr.
-#	 	http://hiddenillusion.blogspot.com
-# 				@hiddenillusion
+#         http://hiddenillusion.blogspot.com
+#                 @hiddenillusion
 # Version 0.2
 # Date: 10-11-2012
 # Requirements:
-#	- Python 2.x
-#	- YARA (http://plusvic.github.io/yara/)
-#	- pdfid (http://blog.didierstevens.com/programs/pdf-tools/)
+#    - Python 3.x
+#    - YARA (http://plusvic.github.io/yara/)
+#    - pdfid (http://blog.didierstevens.com/programs/pdf-tools/)
 # Optional:
-#	* This script will work without these but may miss some conditions to evaluate based on the missing data they would provide (i.e. - # of Pages) *
-#	- pdfinfo (www.foolabs.com/xpdf/download.html)
-#	- a "weight" field within the YARA's rule meta should be added to help in the final evaluation
-#		i.e. - rule pdf_example {meta: weight = 3 strings: $s = "evil" condition: $s}
+#    * This script will work without these but may miss some conditions to
+#      evaluate based on the missing data they would provide (i.e. - # of Pages)
+#    - pdfinfo (www.foolabs.com/xpdf/download.html)
+#    - a "weight" field within the YARA's rule meta should be added to help in the final evaluation
+#        i.e. - rule pdf_example {meta: weight = 3 strings: $s = "evil" condition: $s}
 # To-Do:
-#	- suppress pdfid's output log
-#	- be able to print(out which conditions it met in the rules)
+#    - suppress pdfid's output log
+#    - be able to print(out which conditions it met in the rules)
 
 import os
 import subprocess
 import shutil
-import sys
 import datetime
 import time
 import argparse
@@ -62,12 +62,12 @@ try:
     import pdfid
 except ImportError:
     print("[!] PDFiD not installed")
-    sys.exit()
+    exit()
 try:
     import yara
 except ImportError:
     print("[!] Yara not installed")
-    sys.exit()
+    exit()
 
 # Initialize the list(s) where PDF attribs will be added to
 counter = []
@@ -89,7 +89,7 @@ args = vars(parser.parse_args())
 # Verify supplied path exists or die
 if not os.path.exists(args['Path']):
     print("[!] The supplied path does not exist")
-    sys.exit()
+    exit()
 
 # Configure YARA rules
 if args['yararules']:
@@ -98,8 +98,8 @@ else:
     rules = '/usr/local/etc/capabilities.yara' # REMnux location
 
 if not os.path.exists(rules):
-    print("[!] Correct path to YARA rules?")
-    sys.exit()
+    print("[!] YARA rules not found at %r" % rules)
+    exit()
 else:
     try:
         r = yara.compile(rules)
@@ -107,7 +107,7 @@ else:
             ydir = args['move']
     except Exception as msg:
         print("[!] YARA compile error: %s" % msg)
-        sys.exit()
+        exit()
 
 def main():
     # Set the path to file(s)
@@ -119,9 +119,9 @@ def main():
 
 # Quote idea credited to: https://github.com/marpaia/jadPY ... useful for Windows, what can I say...
 def q(s):
-	quote = "\""
-	s = quote + s + quote
-	return s
+    quote = "\""
+    s = quote + s + quote
+    return s
 
 def sha256(pdf):
     try:
@@ -136,21 +136,24 @@ def sha256(pdf):
 
 def fileID(pdf):
     """
-	Generally the PDF header will be within the first (4) bytes but since the PDF specs say it
-	can be within the first (1024) bytes I'd rather check for atleast (1) instance
-	of it within that large range.  This limits the chance of the PDF using a header
-	evasion trick and then won't end up getting analyzed.  This evasion behavior could later
-	be detected with a YARA rule.
+    Generally the PDF header will be within the first (4) bytes but since the PDF specs say it
+    can be within the first (1024) bytes I'd rather check for atleast (1) instance
+    of it within that large range.  This limits the chance of the PDF using a header
+    evasion trick and then won't end up getting analyzed.  This evasion behavior could later
+    be detected with a YARA rule.
     """
     f = open(pdf,'rb')
     s = f.read(1024)
-    if '\x25\x50\x44\x46' in s:
+
+    if b'\x25\x50\x44\x46' in s:
         print("\n" + trailer)
         print("[+] Analyzing: %s" % pdf)
         print(filler)
         print("[-] Sha256: %s" % sha256(pdf))
         info(pdf)
-    elif os.path.isdir(pdf): pwalk(pdf)
+    elif os.path.isdir(pdf):
+        pwalk(pdf)
+
     f.close()
 
 def pwalk(ploc):
@@ -190,11 +193,11 @@ def info(pdf):
 def id(pdf):
     try:
         # (dir, allNames, extraData, disarm, force), force)
-        command = pdfid.PDFiD2String(pdfid.PDFiD(pdf, True, True, False, True), True)
+        command = pdfid.PDFiD2String(pdfid.PDFiD(pdf, True, True, False, True), True, force=False)
         extra = True
     except Exception:
         # I've observed some files raising errors with the 'extraData' switch
-        command = pdfid.PDFiD2String(pdfid.PDFiD(pdf, True, False, False, True), True)
+        command = pdfid.PDFiD2String(pdfid.PDFiD(pdf, True, False, False, True), True, force=False)
         print("[!] PDFiD couldn\'t parse extra data")
         extra = False
 
@@ -241,10 +244,10 @@ def id(pdf):
             oentropy = count[4]
             print("[-] Entropy outside streams: %7s" % count[4])
     """
-	Entropy levels:
-	0 = orderly, 8 = random
-	ASCII text file = ~2/4
-	ZIP archive = ~ 7/8
+    Entropy levels:
+    0 = orderly, 8 = random
+    ASCII text file = ~2/4
+    ZIP archive = ~ 7/8
     PDF Malicious
             - total   : 6.3
             - inside  : 6.6
@@ -253,8 +256,8 @@ def id(pdf):
             - total   : 6.7
             - inside  : 7.2
             - outside : 5.1
-	Determine if Total Entropy & Entropy Inside Stream are significantly different than Entropy Outside Streams -> i.e. might indicate a payload w/ long, uncompressed NOP-sled
-	ref = http://blog.didierstevens.com/2009/05/14/malformed-pdf-documents
+    Determine if Total Entropy & Entropy Inside Stream are significantly different than Entropy Outside Streams -> i.e. might indicate a payload w/ long, uncompressed NOP-sled
+    ref = http://blog.didierstevens.com/2009/05/14/malformed-pdf-documents
     """
     if not extra == False:
         te_long = Decimal(tentropy)
@@ -387,4 +390,4 @@ def eval(counter):
     del yscore[:]
 
 if __name__ == "__main__":
-	main()
+    main()
