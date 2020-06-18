@@ -172,6 +172,7 @@ def info(pdf):
         #        counter.append("pages")
         #         print("[-] (1) page PDF")
         for line in p.stderr:
+            line = line.decode('utf-8')
             if re.search('Unterminated hex string|Loop in Pages tree|Illegal digit in hex char in name', line):
                 counter.append("sketchy")
                 print("[-] Sketchyness detected")
@@ -259,7 +260,12 @@ def id(pdf):
     Determine if Total Entropy & Entropy Inside Stream are significantly different than Entropy Outside Streams -> i.e. might indicate a payload w/ long, uncompressed NOP-sled
     ref = http://blog.didierstevens.com/2009/05/14/malformed-pdf-documents
     """
-    if not extra == False:
+    if extra and any(e.strip() == 'N/A' for e in [tentropy, ientropy, oentropy]):
+        print("[-] This file either didnt contain any streams")
+        print("    Either this file is a tiny example pdf (unlikely), or it")
+        print("    is intensionally hiding something")
+        counter.append('entropy')
+    elif extra:
         te_long = Decimal(tentropy)
         te_short = Decimal(tentropy[0:3])
         ie_long = Decimal(ientropy)
